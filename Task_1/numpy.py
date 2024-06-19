@@ -78,7 +78,7 @@ class Array:
         else:
             return self.shape[0]
         
-
+# Test Operations
 D2_Array = Array([[1, 2], [1, 2]])
 D1_Array = Array([[1, 2], [1, 2]])
 D_Array = D1_Array * D2_Array
