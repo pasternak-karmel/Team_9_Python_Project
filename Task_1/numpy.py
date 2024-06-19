@@ -14,7 +14,7 @@ class Array:
         return f"Array(elements={self.elements}, shape={self.shape})"
     
 
-mon_tableau_2d = Array([[1, 2], [3, 4], [5, 6], [7, 8]])
-print(mon_tableau_2d)
-print(mon_tableau_2d.elements)
-print(mon_tableau_2d.shape)  
+D2_Array = Array([[1, 2], [3, 4], [5, 6], [7, 8]])
+print(D2_Array)
+print(D2_Array.elements)
+print(D2_Array.shape)  
