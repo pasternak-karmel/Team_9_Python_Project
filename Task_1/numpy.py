@@ -1,3 +1,4 @@
+ARRAY_SHAPE_ERROR = "Arrays must have the same shape"
 class Array:
     # Initialize the array
     def __init__(self, elements):
@@ -19,7 +20,7 @@ class Array:
     def __add__(self, other):
         if isinstance(other, Array):
             if self.shape != other.shape:
-                raise ValueError("Arrays must have the same shape") 
+                raise ValueError(ARRAY_SHAPE_ERROR) 
             result = [
                 [sum(pair) for pair in zip(row1, row2)]  
                 for row1, row2 in zip(self.elements, other.elements)
@@ -43,7 +44,7 @@ class Array:
     def __sub__(self, other):
         if isinstance(other, Array):
             if self.shape != other.shape:
-                raise ValueError("Arrays must have the same shape") 
+                raise ValueError(ARRAY_SHAPE_ERROR) 
             result = [
                 [x - y for x, y in zip(row1, row2)]  
                 for row1, row2 in zip(self.elements, other.elements)
@@ -68,7 +69,7 @@ class Array:
     def __mul__(self, other):
         if isinstance(other, Array):
             if self.shape != other.shape:
-                raise ValueError("Arrays must have the same shape") 
+                raise ValueError(ARRAY_SHAPE_ERROR) 
             result = [
                 [x * y for x, y in zip(row1, row2)]  
                 for row1, row2 in zip(self.elements, other.elements)
@@ -107,9 +108,9 @@ class Array:
     
         
 # Test Operations
-D2_Array = Array([[1, 2], [1, 2]])
+D2_Array = Array([[8, 2], [1, 2]])
 D1_Array = Array([[1, 2], [1, 2]])
-D_Array = D1_Array * D2_Array
+D_Array = D1_Array - D2_Array
 print(D_Array)
 print(D_Array.elements)
 print(D1_Array.shape)  
