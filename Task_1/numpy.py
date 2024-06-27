@@ -1,163 +1,158 @@
-ARRAY_SHAPE_ERROR = "Arrays must have the same shape"
+from typing import List, Tuple, Union
 
 class Array:
-    # Initialize the array
-    def __init__(self, elements):
-        # Check if the elements are numbers
-        def check_numeric(elems):
-            for elem in elems:
-                if isinstance(elem, list):
-                    check_numeric(elem)  # Recursively check nested lists
-                elif not isinstance(elem, (int, float, complex)):
-                    raise TypeError("Arrays must only contain numbers (int, float, etc.)")
-        
-        check_numeric(elements)
-        if isinstance(elements[0], list):
-            # 2D array case
-            self.elements = elements
-            self.shape = (len(elements), len(elements[0]))
+    def __init__(self, data: Union[List[int], List[List[int]]]):
+        # Initialisation de l'objet Array.
+        if isinstance(data[0], list):
+            self.data = data
+            self.shape = (len(data), len(data[0]))  # Shape du tableau 2D.
         else:
-            # 1D array case
-            self.elements = [elements]
-            self.shape = (1, len(elements))
-        self.index = 0
+            self.data = [data]
+            self.shape = (len(data),)  # Shape du tableau 1D.
 
-    # Print the array
     def __repr__(self) -> str:
-        return f"Array(elements={self.elements}, shape={self.shape})"
-    
-    # Add two arrays
-    def __add__(self, other):
-        if isinstance(other, Array):
-            if self.shape != other.shape:
-                raise ValueError(ARRAY_SHAPE_ERROR) 
-            result = [
-                [sum(pair) for pair in zip(row1, row2)]  
-                for row1, row2 in zip(self.elements, other.elements)
-            ] 
-            return Array(result)
-        elif isinstance(other, int) or isinstance(other, float):
-            if self.shape[0] == 1:
-                # 1D Array Case
-                result = [[x + other for x in self.elements[0]]]
-            else:
-                # 2D Array Case
-                result = [
-                    [x + other for x in row]
-                    for row in self.elements
-                ]
-            return Array(result)
-        else:
-            raise TypeError("Unsupported operand type(s) for +: 'Array' and '{}'".format(type(other)))
-        
-     # Subtract two arrays
-    def __sub__(self, other):
-        if isinstance(other, Array):
-            if self.shape != other.shape:
-                raise ValueError(ARRAY_SHAPE_ERROR) 
-            result = [
-                [x - y for x, y in zip(row1, row2)]  
-                for row1, row2 in zip(self.elements, other.elements)
-            ] 
-            return Array(result)
-        elif isinstance(other, int) or isinstance(other, float):
-            if self.shape[0] == 1:
-                # 1D Array Case
-                result = [[x - other for x in self.elements[0]]]
-            else:
-                # 2D Array Case
-                result = [
-                    [x - other for x in row]
-                    for row in self.elements
-                ]
-            return Array(result)
-        else:
-            raise TypeError("Unsupported operand type(s) for -: 'Array' and '{}'".format(type(other)))
-    
+        # Représentation en chaîne de caractères pour l'affichage.
+        return f"Array({self.data})"
 
-    # Multiply two arrays  
-    def __mul__(self, other):
-        if isinstance(other, Array):
-            if self.shape != other.shape:
-                raise ValueError(ARRAY_SHAPE_ERROR) 
-            result = [
-                [x * y for x, y in zip(row1, row2)]  
-                for row1, row2 in zip(self.elements, other.elements)
-            ] 
-            return Array(result)
-        elif isinstance(other, int) or isinstance(other, float):
-            if self.shape[0] == 1:
-                # 1D Array Case
-                result = [[x * other for x in self.elements[0]]]
+    def __len__(self) -> int:
+        # Renvoie la longueur du tableau (nombre d'éléments pour 1D, nombre de lignes pour 2D).
+        return self.shape[0]
+
+    def __getitem__(self, idx: Union[int, Tuple[int, int], slice]) -> Union[int, List[int]]:
+        # Gestion de l'indexage et du slicing.
+        if isinstance(idx, tuple):
+            # Indexation pour un tableau 2D.
+            return self.data[idx[0]][idx[1]]
+        elif isinstance(idx, slice):
+            # Slicing pour un tableau 1D ou 2D.
+            if len(self.shape) == 1:
+                return self.data[0][idx]
             else:
-                # 2D Array Case
-                result = [
-                    [x * other for x in row]
-                    for row in self.elements
-                ]
-            return Array(result)
+                return [row[idx] for row in self.data]
         else:
-            raise TypeError("Unsupported operand type(s) for +: 'Array' and '{}'".format(type(other)))
-    
-    # Commutative addition 
-    def __radd__(self, other):
-        return self.__add__(other)
-    
-    # Commutative multiplication
-    def __rmul__(self, other):
-        return self.__mul__(other)
-    
-    # Commutative substraction
-    def __rsub__(self, other):
-        return self.__sub__(other)
-    
-    # Support for len()
-    def __len__(self):
-        if self.shape[0] == 1:
-            return self.shape[1]
+            # Indexation pour un tableau 1D.
+            if len(self.shape) == 1:
+                return self.data[0][idx]
+            else:
+                return self.data[idx]
+
+    def __add__(self, other: Union['Array', int]) -> 'Array':
+        # Addition élément par élément.
+        if isinstance(other, Array):
+            # Vérification que les shapes correspondent.
+            if self.shape != other.shape:
+                raise ValueError("Shapes must be the same for element-wise addition.")
+            if len(self.shape) == 1:
+                # Addition élément par élément pour les tableaux 1D.
+                result = [self.data[0][i] + other.data[0][i] for i in range(self.shape[0])]
+            else:
+                # Addition élément par élément pour les tableaux 2D.
+                result = [[self.data[i][j] + other.data[i][j] for j in range(self.shape[1])]
+                          for i in range(self.shape[0])]
         else:
-            return self.shape[0]
-      
-    # Search for element with in  
-    def __contains__(self, item):
-        if not isinstance(item, (int, float, complex)):
-            raise TypeError("Only numbers (int, float, etc.) can be searched in Array")
-        for row in self.elements:
+            # Addition d'un scalaire à chaque élément.
+            if len(self.shape) == 1:
+                result = [elem + other for elem in self.data[0]]
+            else:
+                result = [[elem + other for elem in row] for row in self.data]
+        return Array(result if len(self.shape) > 1 else result)
+
+    def __sub__(self, other: Union['Array', int]) -> 'Array':
+        # Soustraction élément par élément.
+        if isinstance(other, Array):
+            # Vérification que les shapes correspondent.
+            if self.shape != other.shape:
+                raise ValueError("Shapes must be the same for element-wise subtraction.")
+            if len(self.shape) == 1:
+                # Soustraction élément par élément pour les tableaux 1D.
+                result = [self.data[0][i] - other.data[0][i] for i in range(self.shape[0])]
+            else:
+                # Soustraction élément par élément pour les tableaux 2D.
+                result = [[self.data[i][j] - other.data[i][j] for j in range(self.shape[1])]
+                          for i in range(self.shape[0])]
+        else:
+            # Soustraction d'un scalaire à chaque élément.
+            if len(self.shape) == 1:
+                result = [elem - other for elem in self.data[0]]
+            else:
+                result = [[elem - other for elem in row] for row in self.data]
+        return Array(result if len(self.shape) > 1 else result)
+
+    def __mul__(self, other: Union['Array', int]) -> 'Array':
+        # Multiplication élément par élément.
+        if isinstance(other, Array):
+            # Vérification que les shapes correspondent.
+            if self.shape != other.shape:
+                raise ValueError("Shapes must be the same for element-wise multiplication.")
+            if len(self.shape) == 1:
+                # Multiplication élément par élément pour les tableaux 1D.
+                result = [self.data[0][i] * other.data[0][i] for i in range(self.shape[0])]
+            else:
+                # Multiplication élément par élément pour les tableaux 2D.
+                result = [[self.data[i][j] * other.data[i][j] for j in range(self.shape[1])]
+                          for i in range(self.shape[0])]
+        else:
+            # Multiplication d'un scalaire à chaque élément.
+            if len(self.shape) == 1:
+                result = [elem * other for elem in self.data[0]]
+            else:
+                result = [[elem * other for elem in row] for row in self.data]
+        return Array(result if len(self.shape) > 1 else result)
+
+    def __truediv__(self, other: Union['Array', int]) -> 'Array':
+        # Division élément par élément.
+        if isinstance(other, Array):
+            # Vérification que les shapes correspondent.
+            if self.shape != other.shape:
+                raise ValueError("Shapes must be the same for element-wise division.")
+            if len(self.shape) == 1:
+                # Division élément par élément pour les tableaux 1D.
+                result = [self.data[0][i] / other.data[0][i] for i in range(self.shape[0])]
+            else:
+                # Division élément par élément pour les tableaux 2D.
+                result = [[self.data[i][j] / other.data[i][j] for j in range(self.shape[1])]
+                          for i in range(self.shape[0])]
+        else:
+            # Division d'un scalaire à chaque élément.
+            if len(self.shape) == 1:
+                result = [elem / other for elem in self.data[0]]
+            else:
+                result = [[elem / other for elem in row] for row in self.data]
+        return Array(result if len(self.shape) > 1 else result)
+
+    def __matmul__(self, other: 'Array') -> int:
+        # Produit scalaire pour les tableaux 1D uniquement.
+        if len(self.shape) != 1 or len(other.shape) != 1:
+            raise ValueError("Dot product is only supported for 1D arrays.")
+        if self.shape[0] != other.shape[0]:
+            raise ValueError("Shapes must be the same for dot product.")
+        # Calcul du produit scalaire.
+        return sum(self.data[0][i] * other.data[0][i] for i in range(self.shape[0]))
+
+    def __contains__(self, item: int) -> bool:
+        # Recherche d'un élément avec l'opérateur 'in'.
+        for row in self.data:
             if item in row:
                 return True
         return False
-        
-    # scalar product for 1D arrays
-    
-    # Indexing support
-    def __getitem__(self, index):
-        # 1D Array Case
-        if isinstance(index, int):
-            if self.shape[0] == 1 and index < self.shape[1]:
-                return self.elements[0][index]
-            elif self.shape[0] > 1 and index < self.shape[0]:
-                return self.elements[index]
-            else:
-                raise IndexError("Index out of range")
-        elif isinstance(index, slice) and self.shape[0] == 1:
-            return Array(self.elements[0][index])
-        # 2D Array Case
-        elif isinstance(index, tuple) and len(index) == 2:
-            row_index, col_index = index
-            if 0 <= row_index < self.shape[0] and 0 <= col_index < self.shape[1]:
-                return self.elements[row_index][col_index]
-            else:
-                raise IndexError("Index out of range")
-        else:
-            raise TypeError("Unsupported index type for Array")
-        
-# Test Operations
-D2_Array = Array([[8, 2], [3, 4]])
-D1_Array = Array([[1, 2], [1, 2]])
-D_Array = D1_Array - D2_Array
-print(D_Array)
-print(D_Array.elements)
-print(D1_Array.shape)  
-print(4 in D1_Array)
-print(D2_Array[1])
 
+# Tests de démonstration
+if __name__ == "__main__":
+    a = Array([1, 2, 3])
+    b = Array([7, 5, 6])
+    c = Array([[1, 2], [3, 4]])
+    d = Array([4, 5, 5, 6, 8, 14])
+    e = Array([8, 9, 5, 6, 8, 32])
+    f = d + e
+
+    print(c)  # Array([[1, 2], [3, 4]])
+    print(c * 2)  # ([[2, 4], [6, 8]])
+    print(a @ b)  # 33
+    print(2 in a)  # True
+    print(c[1, 1])  # 4
+    print(c[1:3])  # [[3, 4]]
+    print([row[1] for row in c.data])  # [2, 4]
+    print(d + e)  # Array([[12, 14, 10, 12, 16, 46]])
+    print(12 in f)  # True
+    print(a.shape)
+    print(c.data)  # Array([[1, 2], [3, 4]])
