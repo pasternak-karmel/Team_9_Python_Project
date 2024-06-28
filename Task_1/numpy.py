@@ -2,21 +2,24 @@ from typing import List, Tuple, Union
 
 class Array:
     def __init__(self, data: Union[List[int], List[List[int]]]):
-        # Initialisation de l'objet Array.
+        # 2D Array Case
         if isinstance(data[0], list):
             self.data = data
-            self.shape = (len(data), len(data[0]))  # Shape du tableau 2D.
+            self.shape = (len(data), len(data[0]))
         else:
+            # 1D Array Case
             self.data = [data]
-            self.shape = (len(data),)  # Shape du tableau 1D.
+            self.shape = (1, len(data))
 
     def __repr__(self) -> str:
         # Représentation en chaîne de caractères pour l'affichage.
-        return f"Array({self.data})"
+        return f"{self.data}"
 
     def __len__(self) -> int:
-        # Renvoie la longueur du tableau (nombre d'éléments pour 1D, nombre de lignes pour 2D).
-        return self.shape[0]
+        if self.shape[0] == 1:
+            return self.shape[1]
+        else:
+            return self.shape[0]
 
     def __getitem__(self, idx: Union[int, Tuple[int, int], slice]) -> Union[int, List[int]]:
         # Gestion de l'indexage et du slicing.
@@ -25,10 +28,10 @@ class Array:
             return self.data[idx[0]][idx[1]]
         elif isinstance(idx, slice):
             # Slicing pour un tableau 1D ou 2D.
-            if len(self.shape) == 1:
+            if self.shape[0] == 1:
                 return self.data[0][idx]
             else:
-                return [row[idx] for row in self.data]
+                return self.data[idx]       
         else:
             # Indexation pour un tableau 1D.
             if len(self.shape) == 1:
@@ -122,12 +125,12 @@ class Array:
 
     def __matmul__(self, other: 'Array') -> int:
         # Produit scalaire pour les tableaux 1D uniquement.
-        if len(self.shape) != 1 or len(other.shape) != 1:
+        if self.shape[0] != 1 or other.shape[0] != 1:
             raise ValueError("Dot product is only supported for 1D arrays.")
-        if self.shape[0] != other.shape[0]:
+        if self.shape[1] != other.shape[1]:
             raise ValueError("Shapes must be the same for dot product.")
         # Calcul du produit scalaire.
-        return sum(self.data[0][i] * other.data[0][i] for i in range(self.shape[0]))
+        return sum(self.data[0][i] * other.data[0][i] for i in range(self.shape[1]))
 
     def __contains__(self, item: int) -> bool:
         # Recherche d'un élément avec l'opérateur 'in'.
@@ -145,14 +148,18 @@ if __name__ == "__main__":
     e = Array([8, 9, 5, 6, 8, 32])
     f = d + e
 
+    print(b.shape)
+    print()
+
     print(c)  # Array([[1, 2], [3, 4]])
     print(c * 2)  # ([[2, 4], [6, 8]])
-    print(a @ b)  # 33
-    print(2 in a)  # True
+    print(a @ b) # 35
+    print(4 in a)  # True
     print(c[1, 1])  # 4
-    print(c[1:3])  # [[3, 4]]
+    print(c[:1])  # [[1], [2]]
     print([row[1] for row in c.data])  # [2, 4]
-    print(d + e)  # Array([[12, 14, 10, 12, 16, 46]])
+    print(d + e)  
+    print()# Array([[12, 14, 10, 12, 16, 46]])
     print(12 in f)  # True
     print(a.shape)
     print(c.data)  # Array([[1, 2], [3, 4]])
