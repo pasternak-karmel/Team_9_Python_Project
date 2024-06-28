@@ -1,1 +1,92 @@
+Installation des Bibliothèques pour Python et R
+
+*Pour Python
+/
+Installation de pandas et matplotlib
+/
+
+Ouvrez votre terminal ou votre invite de commande et exécutez les commandes suivantes pour installer les bibliothèques nécessaires :
+/
+pip install pandas matplotlib
+/
+
+Vérification de l'installation
+Vous pouvez vérifier que les bibliothèques sont correctement installées en exécutant le code suivant dans un script Python  :
+/
+import pandas as pd
+import matplotlib.pyplot as plt
+
+print(pd.__version__)
+print(matplotlib.__version__)
+/
+
+Pour R
+Installation de ggplot2 et readr
+
+Ouvrez votre console R ou RStudio et exécutez les commandes suivantes pour installer les bibliothèques nécessaires :
+/
+install.packages("ggplot2")
+install.packages("readr")
+/
+
+Vérification de l'installation
+
+Vous pouvez vérifier que les bibliothèques sont correctement installées en exécutant le code suivant dans un script R ou RStudio :
+/
+library(ggplot2)
+library(readr)
+
+packageVersion("ggplot2")
+packageVersion("readr")
+/
+Utilisation des Bibliothèques pour Créer des Graphiques
+Voici un rappel des scripts pour créer les graphiques en Python et R.
+
+Python
+
+/
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Charger les données
+data = pd.read_csv('Housing.csv')
+
+# Histogramme pour la colonne 'bedrooms'
+plt.figure(figsize=(10, 5))
+plt.hist(data['bedrooms'], bins=10, edgecolor='black')
+plt.title('Distribution des Chambres')
+plt.xlabel('Nombre de Chambres')
+plt.ylabel('Fréquence')
+plt.show()
+
+# Graphique de dispersion pour 'area' vs 'price'
+plt.figure(figsize=(10, 5))
+plt.scatter(data['area'], data['price'], alpha=0.5)
+plt.title('Prix vs Surface')
+plt.xlabel('Surface (area)')
+plt.ylabel('Prix (price)')
+plt.show()
+/
+
+*R
+
+library(ggplot2)
+library(readr)
+
+# Charger les données
+data <- read_csv('Housing.csv')
+
+# Histogramme pour la colonne 'bedrooms'
+ggplot(data, aes(x = bedrooms)) +
+  geom_histogram(binwidth = 1, fill = 'blue', color = 'black') +
+  ggtitle('Distribution des Chambres') +
+  xlab('Nombre de Chambres') +
+  ylab('Fréquence')
+
+# Graphique de dispersion pour 'area' vs 'price'
+ggplot(data, aes(x = area, y = price)) +
+  geom_point(alpha = 0.5) +
+  ggtitle('Prix vs Surface') +
+  xlab('Surface (area)') +
+  ylab('Prix (price)')
 
