@@ -31,100 +31,132 @@ class Array:
             if self.shape[0] == 1:
                 return self.data[0][idx]
             else:
+                # Slicing pour obtenir les lignes spécifiées.
                 return self.data[idx]       
         else:
             # Indexation pour un tableau 1D.
-            if len(self.shape) == 1:
+            if self.shape[0] == 1:
                 return self.data[0][idx]
             else:
                 return self.data[idx]
 
+    # Addition élément par élément.
     def __add__(self, other: Union['Array', int]) -> 'Array':
-        # Addition élément par élément.
         if isinstance(other, Array):
             # Vérification que les shapes correspondent.
             if self.shape != other.shape:
-                raise ValueError("Shapes must be the same for element-wise addition.")
-            if len(self.shape) == 1:
-                # Addition élément par élément pour les tableaux 1D.
-                result = [self.data[0][i] + other.data[0][i] for i in range(self.shape[0])]
+                raise ValueError("Shapes must be the same for element-wise addition.") 
+            result = [
+                [sum(pair) for pair in zip(row1, row2)]  
+                for row1, row2 in zip(self.data, other.data)
+            ] 
+            return Array(result)
+        elif isinstance(other, int) or isinstance(other, float):
+            if self.shape[0] == 1:
+                # 1D Array Case
+                result = [[x + other for x in self.data[0]]]
             else:
-                # Addition élément par élément pour les tableaux 2D.
-                result = [[self.data[i][j] + other.data[i][j] for j in range(self.shape[1])]
-                          for i in range(self.shape[0])]
+                # 2D Array Case
+                result = [
+                    [x + other for x in row]
+                    for row in self.data
+                ]
+            return Array(result)
         else:
-            # Addition d'un scalaire à chaque élément.
-            if len(self.shape) == 1:
-                result = [elem + other for elem in self.data[0]]
-            else:
-                result = [[elem + other for elem in row] for row in self.data]
-        return Array(result if len(self.shape) > 1 else result)
+            raise TypeError("Unsupported operand type(s) for +: 'Array' and '{}'".format(type(other)))
+        
+    # Addition Commutative
+    def __radd__(self, other: Union['Array', int]) -> 'Array':
+        return self.__add__(other)
 
+    # Soustraction élément par élément.
     def __sub__(self, other: Union['Array', int]) -> 'Array':
-        # Soustraction élément par élément.
         if isinstance(other, Array):
-            # Vérification que les shapes correspondent.
             if self.shape != other.shape:
                 raise ValueError("Shapes must be the same for element-wise subtraction.")
-            if len(self.shape) == 1:
-                # Soustraction élément par élément pour les tableaux 1D.
-                result = [self.data[0][i] - other.data[0][i] for i in range(self.shape[0])]
+            result = [
+                [x - y for x, y in zip(row1, row2)]  
+                for row1, row2 in zip(self.data, other.data)
+            ] 
+            return Array(result)
+        elif isinstance(other, int) or isinstance(other, float):
+            if self.shape[0] == 1:
+                # 1D Array Case
+                result = [[x - other for x in self.data[0]]]
             else:
-                # Soustraction élément par élément pour les tableaux 2D.
-                result = [[self.data[i][j] - other.data[i][j] for j in range(self.shape[1])]
-                          for i in range(self.shape[0])]
+                # 2D Array Case
+                result = [
+                    [x - other for x in row]
+                    for row in self.data
+                ]
+            return Array(result)
         else:
-            # Soustraction d'un scalaire à chaque élément.
-            if len(self.shape) == 1:
-                result = [elem - other for elem in self.data[0]]
-            else:
-                result = [[elem - other for elem in row] for row in self.data]
-        return Array(result if len(self.shape) > 1 else result)
+            raise TypeError("Unsupported operand type(s) for -: 'Array' and '{}'".format(type(other)))
 
+    # Soustraction commutative
+    def __rsub__(self, other: Union['Array', int]) -> 'Array':
+        return self.__sub__(other)
+    
+    # Multiplication élément par élément et par un scalaire
     def __mul__(self, other: Union['Array', int]) -> 'Array':
-        # Multiplication élément par élément.
         if isinstance(other, Array):
-            # Vérification que les shapes correspondent.
             if self.shape != other.shape:
-                raise ValueError("Shapes must be the same for element-wise multiplication.")
-            if len(self.shape) == 1:
-                # Multiplication élément par élément pour les tableaux 1D.
-                result = [self.data[0][i] * other.data[0][i] for i in range(self.shape[0])]
+                raise ValueError("Shapes must be the same for element-wise multiplication.") 
+            result = [
+                [x * y for x, y in zip(row1, row2)]  
+                for row1, row2 in zip(self.data, other.data)
+            ] 
+            return Array(result)
+        elif isinstance(other, int) or isinstance(other, float):
+            if self.shape[0] == 1:
+                # 1D Array Case
+                result = [[x * other for x in self.data[0]]]
             else:
-                # Multiplication élément par élément pour les tableaux 2D.
-                result = [[self.data[i][j] * other.data[i][j] for j in range(self.shape[1])]
-                          for i in range(self.shape[0])]
+                # 2D Array Case
+                result = [
+                    [x * other for x in row]
+                    for row in self.data
+                ]
+            return Array(result)
         else:
-            # Multiplication d'un scalaire à chaque élément.
-            if len(self.shape) == 1:
-                result = [elem * other for elem in self.data[0]]
-            else:
-                result = [[elem * other for elem in row] for row in self.data]
-        return Array(result if len(self.shape) > 1 else result)
+            raise TypeError("Unsupported operand type(s) for +: 'Array' and '{}'".format(type(other)))
 
+    # Multiplication Commutative
+    def __rmul__(self, other: Union['Array', int]) -> 'Array':
+        return self.__mul__(other)
+    
+    # Division élément par élément.
     def __truediv__(self, other: Union['Array', int]) -> 'Array':
-        # Division élément par élément.
         if isinstance(other, Array):
             # Vérification que les shapes correspondent.
             if self.shape != other.shape:
                 raise ValueError("Shapes must be the same for element-wise division.")
-            if len(self.shape) == 1:
-                # Division élément par élément pour les tableaux 1D.
-                result = [self.data[0][i] / other.data[0][i] for i in range(self.shape[0])]
+            result = [
+                [x / y for x, y in zip(row1, row2)]
+                for row1, row2 in zip(self.data, other.data)
+            ]
+            return Array(result)
+        elif isinstance(other, int) or isinstance(other, float):
+            if self.shape[0] == 1:
+            # 1D Array Case
+                result = [[x / other for x in self.data[0]]]
             else:
-                # Division élément par élément pour les tableaux 2D.
-                result = [[self.data[i][j] / other.data[i][j] for j in range(self.shape[1])]
-                          for i in range(self.shape[0])]
+            # 2D Array Case
+                result = [
+                    [x / other for x in row]
+                    for row in self.data
+                ]
+            return Array(result)
         else:
-            # Division d'un scalaire à chaque élément.
-            if len(self.shape) == 1:
-                result = [elem / other for elem in self.data[0]]
-            else:
-                result = [[elem / other for elem in row] for row in self.data]
-        return Array(result if len(self.shape) > 1 else result)
-
-    def __matmul__(self, other: 'Array') -> int:
-        # Produit scalaire pour les tableaux 1D uniquement.
+            raise TypeError("Unsupported operand type(s) for /: 'Array' and '{}'".format(type(other)))
+        
+        
+    # Divison commutative
+    def __rtruediv__(self, other: Union['Array', int]) -> 'Array':
+        return self.__truediv__(other)
+     
+    # Produit scalaire pour les tableaux 1D uniquement.
+    def __matmul__(self, other: 'Array') -> int:        
         if self.shape[0] != 1 or other.shape[0] != 1:
             raise ValueError("Dot product is only supported for 1D arrays.")
         if self.shape[1] != other.shape[1]:
@@ -132,8 +164,8 @@ class Array:
         # Calcul du produit scalaire.
         return sum(self.data[0][i] * other.data[0][i] for i in range(self.shape[1]))
 
-    def __contains__(self, item: int) -> bool:
-        # Recherche d'un élément avec l'opérateur 'in'.
+    # Recherche d'un élément avec l'opérateur 'in'.
+    def __contains__(self, item: int) -> bool:  
         for row in self.data:
             if item in row:
                 return True
@@ -144,22 +176,36 @@ if __name__ == "__main__":
     a = Array([1, 2, 3])
     b = Array([7, 5, 6])
     c = Array([[1, 2], [3, 4]])
+    h = Array([[1, 2], [3, 4]])
+    g = Array([[1, 2], [3, 4], [5, 6], [7, 8]])
     d = Array([4, 5, 5, 6, 8, 14])
     e = Array([8, 9, 5, 6, 8, 32])
     f = d + e
 
     print(b.shape)
+    print(c.shape)
     print()
 
-    print(c)  # Array([[1, 2], [3, 4]])
-    print(c * 2)  # ([[2, 4], [6, 8]])
-    print(a @ b) # 35
+    print(c + h)
+    print(c - h)
+    print(c * h)
+    print(c / h)
+    print("Add")
+    print(c + 1)
+    print(1 + c)
+    print("Mul")
+    print(c * 2)
+    print(2 * c)
+    print("Sub")
+    print(c - 2)
+    print(2 - c)
+    print("Div")
+    print(c / 2)
+    print(2 / c)
+    print("Scalar Product")
+    print(a @ b)
+    print("Search")
     print(4 in a)  # True
     print(c[1, 1])  # 4
-    print(c[:1])  # [[1], [2]]
-    print([row[1] for row in c.data])  # [2, 4]
-    print(d + e)  
-    print()# Array([[12, 14, 10, 12, 16, 46]])
-    print(12 in f)  # True
-    print(a.shape)
-    print(c.data)  # Array([[1, 2], [3, 4]])
+    print(g[:2])
+    print(c[1:2])
