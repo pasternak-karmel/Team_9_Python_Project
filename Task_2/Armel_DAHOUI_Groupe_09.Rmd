@@ -1,0 +1,129 @@
+---
+title: "Python_projet"
+author: "Armel_DAHOUI"
+date: "2024-06-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+#Tâche 2: Tracé de Graphiques et Analyse de Données
+#Dans cette tâche, vnous allez réaliser une analyse de données basique en utilisant  R
+```
+
+
+
+```
+
+
+```{r}
+#importation de la base de donner
+data_base <- read.csv("C:/Users/HP/Downloads/Housing.csv")
+head(data_base, 5)
+```
+```{r}
+#dimension
+dim(data_base)
+```
+
+
+```{r}
+#statistique d'escriptive de ma base de donner 
+summary(data_base)
+```
+```{r}
+# Recherchons des valeurs Manquantes
+#statistique des valeurs manquantes dans chaque colonnes 
+colSums(is.na(data_base))
+
+```
+
+
+```{r}
+#visualisation du graphique de dispersion, en utilisez la colonne 'area' en abscisse et 'price' en ordonnées
+library(ggplot2)
+graphique<- ggplot(data = data_base, aes(x = area, y= price)) + geom_point()
+graphique
+```
+```{r}
+#visualisation de la densiter du nombre de personne ayant dire oui ou non pour la dispersion en utilisant la colonne 'area' en abscisse et 'price' en ordonnées 
+graphique1 <- ggplot(data = data_base, aes(x = area, y= price)) +
+  geom_point(aes(col = mainroad , size = price))
+graphique1
+```
+```{r}
+#affichage de l'histogramme
+histograme <- ggplot(data = data_base, aes(bedrooms))+
+  geom_histogram()
+histograme
+```
+
+
+```
+```
+
+#Tâche 2: Tracé de Graphiques et Analyse de Données
+#Dans cette tâche, vnous allez réaliser une analyse de données basique en utilisant  R
+```
+#Importation de la base de donner
+data_base <- read.csv("C:\Users\HP\Downloads\Housing.csv")
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+```{r}
+#importation de la base de donner
+data_base <- read.csv("C:/Users/HP/Downloads/Housing.csv")
+head(data_base, 5)
+```
+```{r}
+#dimension
+dim(data_base)
+```
+
+
+```{r}
+#statistique d'escriptive de ma base de donner 
+summary(data_base)
+```
+```{r}
+# Recherchons des valeurs Manquantes
+#statistique des valeurs manquantes dans chaque colonnes 
+colSums(is.na(data_base))
+
+```
+
+
+```{r}
+#visualisation du graphique de dispersion, en utilisez la colonne 'area' en abscisse et 'price' en ordonnées
+library(ggplot2)
+graphique<- ggplot(data = data_base, aes(x = area, y= price)) + geom_point()
+graphique
+```
+```{r}
+#visualisation de la densiter du nombre de personne ayant dire oui ou non pour la dispersion en utilisant la colonne 'area' en abscisse et 'price' en ordonnées 
+graphique1 <- ggplot(data = data_base, aes(x = area, y= price)) +
+  geom_point(aes(col = mainroad , size = price))
+graphique1
+```
+```{r}
+#affichage de l'histogramme
+histograme <- ggplot(data = data_base, aes(bedrooms))+
+  geom_histogram()
+histograme
+```
+
+
+
+#Histogramme des chambres (bedrooms):  Un histogramme est approprié pour visualiser la distribution d'une variable numérique. Dans ce cas, il montre la fréquence des différentes nombres de chambres dans les maisons du jeu de données. Cela permet de comprendre la répartition des types de logement (studios, appartements, maisons, etc.).
+#L'histogramme montre que la majorité des maisons ont 3 ou 4 chambres, avec un nombre significatif de maisons ayant 2 chambres. Il y a peu de maisons avec 5 chambres ou plus, et très peu avec 1 chambre. Cela suggère que le marché immobilier est principalement axé sur les maisons familiales de taille moyenne.
+```
+
+
+
