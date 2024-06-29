@@ -1,65 +1,23 @@
-# import tkinter as tk
-# from tkinter import ttk
-# from PIL import Image, ImageTk
-# from diffusers import StableDiffusionPipeline, EulerDiscreteScheduler
-# import torch
-# import threading
-#
-# model_id = "stabilityai/stable-diffusion-2"
-# scheduler = EulerDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
-# pipe = StableDiffusionPipeline.from_pretrained(model_id, scheduler=scheduler, torch_dtype=torch.float16)
-# pipe = pipe.to("cuda")
-#
-# def generate_image():
-#     description = description_entry.get()
-#     spinner.start()
-#     threading.Thread(target=lambda: generate_and_display_image(description)).start()
-#
-# def generate_and_display_image(text):
-#     with torch.autocast("cuda"):
-#         image = pipe(text).images[0]
-#     root.after(0, lambda: stop_spinner(image))
-#
-# def stop_spinner(image):
-#     spinner.stop()
-#     image = image.resize((400, 200))
-#     img_tk = ImageTk.PhotoImage(image)
-#     image_label.config(image=img_tk)
-#     image_label.image = img_tk
-#
-# root = tk.Tk()
-# root.title("Tkinter Application UI")
-#
-# description_label = tk.Label(root, text="Description:")
-# description_label.grid(row=0, column=0, padx=10, pady=10)
-#
-# description_entry = tk.Entry(root, width=40)
-# description_entry.grid(row=0, column=1, padx=10, pady=10)
-#
-# generate_button = tk.Button(root, text="Generate Image", command=generate_image)
-# generate_button.grid(row=1, column=1, pady=10)
-#
-# spinner = ttk.Progressbar(root, mode='indeterminate')
-# spinner.grid(row=1, column=2, padx=10, pady=10)
-#
-# image_label = tk.Label(root, text="Image Display Area", width=50, height=10, relief="solid")
-# image_label.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
-#
-# root.mainloop()
-
-
 import tkinter as tk
-from tkinter import ttk
-from PIL import ImageTk
-from diffusers import StableDiffusionPipeline
-# from transformers import pipeline
+from tkinter import ttk, messagebox
+from PIL import Image, ImageTk, ImageSequence
 import torch
 import threading
 import subprocess
 import sys
+from diffusers import StableDiffusionPipeline
 from accelerate import Accelerator
+import requests
+import time
+from io import BytesIO
+import os
 
-import matplotlib.pyplot as plt
+folder_path = 'image/'
+
+
+def ensure_folder_exists(folder):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
 
 
 def install(package):
@@ -72,63 +30,141 @@ except ImportError:
     install("numpy<2.0.0")
     import numpy as np
 
-# model_id = "dreamlike-art/dreamlike-photoreal-2.0"
 model_id = "hf-internal-testing/tiny-stable-diffusion-torch"
 accelerator = Accelerator()
 pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
 pipe = pipe.to("cuda" if torch.cuda.is_available() else "cpu")
 pipe = pipe.to(accelerator.device)
 
-# prompt = "photo, a church in the middle of a field of crops, bright cinematic lighting, gopro, fisheye lens"
-# image = pipe(prompt).images[0]
-#
-# image.save("./result.jpg")
+API_TOKEN = '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'
+model_id1 = "dreamlike-art/dreamlike-photoreal-2.0"
+API_URL = "https://api-inference.huggingface.co/models/" + model_id1
+
+headers = {
+    "Authorization": f"Bearer {API_TOKEN}"
+}
+
+
+class SpinnerLabel(tk.Label):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.stop_animation = True
+        self.frames = [ImageTk.PhotoImage(frame.resize((40, 40))) for frame in
+                       ImageSequence.Iterator(Image.open('spinner.webp'))]
+
+    def start(self):
+        self.stop_animation = False
+        self._animate(0)
+
+    def stop(self):
+        self.stop_animation = True
+
+    def _animate(self, frame_index):
+        if not self.stop_animation:
+            self.config(image=self.frames[frame_index])
+            self.image = self.frames[frame_index]
+            frame_index = (frame_index + 1) % len(self.frames)
+            self.after(100, self._animate, frame_index)
+
 
 root = tk.Tk()
-root.geometry('600x600')
-root.title('Team 9')
+root.geometry('800x700')
+root.title('Team 9 - Image Generator')
 root.resizable(height=True, width=True)
 
 
-def karmel():
-    image.config(image='', text="Generating new image...")
-    description = description_entry.get()
-    spinner.start()
-    threading.Thread(target=lambda: generate(description)).start()
-
-
-def generate(text):
-    # with torch.autocast(accelerator.device):
+# Function to generate image using Stable Diffusion
+def generate_stable_diffusion(text):
     with torch.autocast("cuda"):
-        celui = pipe(text).images[0]
-        plt.imshow(celui)
-        plt.axis('off')
-    root.after(0, lambda: stop_spinner(celui))
+        generated_image = pipe(text).images[0]
+        return generated_image
 
 
-def stop_spinner(image):
+def generate_api_image(prompt, retries=2, delay=10):
+    data = {"inputs": prompt}
+    while retries > 0:
+        try:
+            response = requests.post(API_URL, headers=headers, json=data)
+            if response.status_code == 200:
+                image_data = response.content
+                image = Image.open(BytesIO(image_data))
+                return image
+            elif response.status_code == 503:
+                raise Exception("Service Unavailable (503)")
+            else:
+                raise Exception(f"Image generation error: {response.status_code}")
+        except Exception as e:
+            retries -= 1
+            if retries > 0:
+                messagebox.showwarning("Error", f"{str(e)}. Retrying in {delay} seconds...")
+                time.sleep(delay)
+            else:
+                raise e
+
+
+def generate_image():
+    image_label.config(image='', text="Generating new image...")
+    description = description_entry.get()
+    generate_button.config(state=tk.DISABLED)
+    spinner.start()
+    threading.Thread(target=lambda: process_image_generation(description)).start()
+
+
+# Function to process image generation and display the result
+def process_image_generation(prompt):
+    try:
+        if use_stable_diffusion.get():
+            generated_image = generate_stable_diffusion(prompt)
+        else:
+            generated_image = generate_api_image(prompt)
+        display_generated_image(generated_image)
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to generate image: {str(e)}")
+        spinner.stop()
+        generate_button.config(state=tk.NORMAL)
+
+
+def display_generated_image(generated_image):
+    folder_path = 'image/'
     spinner.stop()
-    image = image.resize((400, 400))
-    img_tk = ImageTk.PhotoImage(image)
-    image.config(image=img_tk, text='')
-    # image.save("/image/"+description_entry.get()+".png")
-    image.save(f"{description_entry.get()}.png")
-    image.image = img_tk
+    generated_image = generated_image.resize((400, 400))
+    img_tk = ImageTk.PhotoImage(generated_image)
+    image_label.config(image=img_tk, text='')
+    image_filename = description_entry.get().strip()
+    if not image_filename:
+        image_filename = "generated_image"
+
+    if not folder_path.endswith('/'):
+        folder_path += '/'
+
+    ensure_folder_exists(folder_path)
+
+    image_path = folder_path + image_filename + ".png"
+    generated_image.save(image_path)
+    # generated_image.save(f"{description_entry.get()}.png")
+    image_label.image = img_tk
+    generate_button.config(state=tk.NORMAL)
 
 
-description_label = tk.Label(root, text="Description:")
+description_label = ttk.Label(root, text="Description:")
 description_label.grid(row=0, column=0, padx=10, pady=10)
 
-description_entry = tk.Entry(root, width=40)
+description_entry = ttk.Entry(root, width=40)
 description_entry.grid(row=0, column=1, padx=10, pady=10)
 
-generate_button = tk.Button(root, text="Generate Image", command=karmel)
-generate_button.grid(row=1, column=1, pady=10)
+use_stable_diffusion = tk.BooleanVar(value=True)
+stable_diffusion_radio = ttk.Radiobutton(root, text="Use Stable Diffusion", variable=use_stable_diffusion, value=True)
+api_radio = ttk.Radiobutton(root, text="Use API", variable=use_stable_diffusion, value=False)
+stable_diffusion_radio.grid(row=1, column=0, pady=5, padx=10, sticky=tk.W)
+api_radio.grid(row=1, column=1, pady=5, padx=10, sticky=tk.W)
 
-spinner = ttk.Progressbar(root, mode='indeterminate')
-spinner.grid(row=1, column=2, padx=10, pady=10)
+generate_button = ttk.Button(root, text="Generate Image", command=generate_image)
+generate_button.grid(row=2, column=0, columnspan=2, pady=10)
 
-image = ttk.Label(root, text="gonna display here", width=50, relief="solid")
-image.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+spinner = SpinnerLabel(root)
+spinner.grid(row=2, column=2, padx=10, pady=10)
+
+image_label = ttk.Label(root, text="Image will be displayed here", width=50, relief="solid")
+image_label.grid(row=3, column=0, columnspan=3, padx=10, pady=10)
 
 root.mainloop()
